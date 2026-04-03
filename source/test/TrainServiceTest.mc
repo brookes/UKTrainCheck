@@ -82,7 +82,7 @@ function testNoServicesReturnsEmptyTrains(logger as Test.Logger) as Boolean {
     return true;
 }
 
-// --- HTTP error: non-200 clears trains immediately ---
+// --- HTTP error: non-200 clears trains and sets generic error message ---
 
 (:test)
 function testHttpErrorClearsTrains(logger as Test.Logger) as Boolean {
@@ -96,6 +96,52 @@ function testHttpErrorClearsTrains(logger as Test.Logger) as Boolean {
     Test.assertEqual(mock.callCount,         1);   // no retry on HTTP error
     Test.assertEqual(sink.count,             1);
     Test.assertEqual(svc.getTrains().size(), 0);
+    Test.assertEqual(svc.getError(),         "[Error 503]");
+    return true;
+}
+
+// --- Error decoding: API message "Invalid crs code supplied" ---
+
+(:test)
+function testBadStopCodeError(logger as Test.Logger) as Boolean {
+    var mock = new MockWebRequester();
+    mock.enqueue(400, { "Message" => "Invalid crs code supplied" });
+
+    var sink = new _Sink();
+    var svc  = new TrainService(new Lang.Method(sink, :notify), mock);
+    svc.request("XXX", "WAT", 2, null);
+
+    Test.assertEqual(svc.getError(), "[Bad stop code]");
+    return true;
+}
+
+// --- Error decoding: BLE_CONNECTION_UNAVAILABLE (-104) ---
+
+(:test)
+function testBleUnavailableError(logger as Test.Logger) as Boolean {
+    var mock = new MockWebRequester();
+    mock.enqueue(-104, null);   // Communications.BLE_CONNECTION_UNAVAILABLE
+
+    var sink = new _Sink();
+    var svc  = new TrainService(new Lang.Method(sink, :notify), mock);
+    svc.request("WTY", "WAT", 2, null);
+
+    Test.assertEqual(svc.getError(), "[No Bluetooth]");
+    return true;
+}
+
+// --- Error decoding: NETWORK_REQUEST_TIMED_OUT (-300) ---
+
+(:test)
+function testNetworkTimeoutError(logger as Test.Logger) as Boolean {
+    var mock = new MockWebRequester();
+    mock.enqueue(-300, null);   // Communications.NETWORK_REQUEST_TIMED_OUT
+
+    var sink = new _Sink();
+    var svc  = new TrainService(new Lang.Method(sink, :notify), mock);
+    svc.request("WTY", "WAT", 2, null);
+
+    Test.assertEqual(svc.getError(), "[No Network]");
     return true;
 }
 
