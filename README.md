@@ -8,7 +8,7 @@ trip you're at would interfere with the experience.)
 
 - Shows upcoming departures between two configured stations
 - Automatically switches outward/return direction at a configurable time, or swap it by hand with a key press
-- Highlights delayed trains in orange, past trains in grey
+- Colour-codes each departure: green on time, orange delayed, grey departed
 - Glance view shows the next departure at a glance
 - Falls back to show if a replacement bus service is running.
 
@@ -16,7 +16,7 @@ trip you're at would interfere with the experience.)
 
 | Setting | Description |
 |---|---|
-| **Home Station (CRS)** | Your home station's [CRS code](https://www.nationalrail.co.uk/stations_destinations/48541.aspx) (e.g. `WTY`) |
+| **Home Station (CRS)** | Your home station's [CRS code](https://www.nationalrail.co.uk/stations_destinations/48541.aspx) (e.g. `GLD`) |
 | **Away Station (CRS)** | Your destination station's CRS code (e.g. `WAT`) |
 | **Switch direction after** | Time after which the app shows return trains instead of outward (24h, default 12:00) |
 | **Show destination CRS** | Append each train's terminating station code, e.g. `WAT` (default on) |
@@ -46,6 +46,13 @@ Delay is shown as `+N` minutes; the countdown always counts to the *actual*
 - **Grey** — already departed (trains from up to 45 minutes ago are shown)
 - **BUS** — replacement bus service
 
+A header shows the direction currently displayed, e.g. `GLD > WAT`. Arrows
+either side of it appear when there are more departures above or below.
+
+How many rows fit is worked out from the screen size at draw time, so it
+adapts across devices — around five on a 240x240 round watch. Scroll with
+UP/DOWN if a busy route returns more than that.
+
 The glance view shows the next departure compactly, e.g. `08:45 +7  5m` (the
 route is already in the glance title).
 
@@ -67,9 +74,56 @@ See devices in manifest.xml.  Note - many of these devices don't support glance,
 
 ## Building
 
-Requires the [Garmin Connect IQ SDK](https://developer.garmin.com/connect-iq/sdk/).
+Requires the [Garmin Connect IQ SDK](https://developer.garmin.com/connect-iq/sdk/)
+and a developer key (VS Code: *Monkey C: Generate a Developer Key*). The SDK
+tools live under `~/Library/Application Support/Garmin/ConnectIQ/Sdks/<version>/bin`
+on macOS, `~/AppData/Roaming/Garmin/ConnectIQ/Sdks/<version>/bin` on Windows.
 
-Set the `SDK` variable to your Connect IQ SDK path (e.g. `~/AppData/Roaming/Garmin/ConnectIQ/Sdks/<sdk-version>` on Windows, `~/Library/Application Support/Garmin/ConnectIQ/Sdks/<sdk-version>` on macOS).
+Build a sideloadable `.prg` for one device:
+
+```bash
+monkeyc -f monkey.jungle -o bin/UKTrainCheck.prg -y <developer_key> -d fr945 -r
+```
+
+Build a store package covering every device in the manifest:
+
+```bash
+monkeyc -e -o UKTrainCheck.iq -f monkey.jungle -y <developer_key> -r
+```
+
+Run the unit tests, with the simulator already running (`connectiq`):
+
+```bash
+monkeyc -f monkey.jungle -o bin/test.prg -y <developer_key> -d fr945 -w -t
+monkeydo bin/test.prg fr945 -t
+```
+
+Two things that look like faults but aren't:
+
+- `Invalid device id found in the application manifest` is emitted for every
+  device whose bundle isn't installed in the SDK Manager. The manifest lists
+  more devices than you are likely to have downloaded, so expect a wall of
+  these. The build still succeeds.
+- `monkeydo` **with** `-t` runs the test harness, not the UI, so the simulator
+  window stays blank. Drop `-t` to see the app. For a glance-capable app the
+  simulator may also open the glance rather than the main view.
+
+## Installing
+
+Copy the `.prg` into `GARMIN/APPS/` on the watch over USB. Recent devices
+present as MTP rather than mass storage, so on macOS they never appear in
+`/Volumes` — use [OpenMTP](https://openmtp.ganeshrvel.com/) or similar.
+
+Sideloaded apps are not registered against a Garmin account, so they don't
+appear in the Connect IQ settings list in Garmin Connect and their properties
+can't be edited from the phone. Change the defaults in
+`resources/properties.xml` and rebuild instead.
+
+Note that an existing install keeps its own copy of the settings in
+`GARMIN/APPS/SETTINGS/`, and those win over rebuilt defaults. The filenames
+there are opaque, so identify the right one by its contents — the file holding
+this app's settings contains the property keys (`Stop1`, `Stop2`,
+`SwitchHour`, ...) as plain strings. Delete it to pick up new defaults.
 
 ## Notes
 
