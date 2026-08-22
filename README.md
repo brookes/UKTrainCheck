@@ -43,7 +43,7 @@ Delay is shown as `+N` minutes; the countdown always counts to the *actual*
 
 - **Green** — on time or within expected time
 - **Orange** — delayed
-- **Grey** — already departed (trains from up to 60 minutes ago are shown)
+- **Grey** — already departed (trains from up to 45 minutes ago are shown)
 - **BUS** — replacement bus service
 
 The glance view shows the next departure compactly, e.g. `08:45 +7  5m` (the
@@ -74,4 +74,4 @@ Set the `SDK` variable to your Connect IQ SDK path (e.g. `~/AppData/Roaming/Garm
 ## Notes
 
 - Times are compared against device local time. The watch should be configured to UK/London timezone for the "past train" greying to be accurate.
-- The full view queries for trains departing from up to 60 minutes ago, so recently departed services remain visible (so you can tell how late your train was!)
+- The full view queries from 45 minutes ago to 75 minutes ahead, so recently departed services remain visible (so you can tell how late your train was!). Darwin serves a 120-minute window from the requested offset and ignores any larger `timeWindow`, so lookback and lookahead trade directly against each other — `FETCH_OFFSET` in `TrainViewModel.mc` sets where that window starts.

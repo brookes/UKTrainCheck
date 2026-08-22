@@ -5,10 +5,14 @@ using Toybox.Application.Properties;
 using Toybox.Time.Gregorian;
 using Toybox.WatchUi;
 
-// Fetch enough rows to cover busy routes (e.g. 30 trains/hour * 1-hour lookback).
-const FETCH_ROWS   = 60;
-// Show trains from up to 60 minutes ago so quiet routes (1/hour) still show 1 past train.
-const FETCH_OFFSET = -60;
+// Filtering to trains that call at the far station cuts the board right down,
+// so 30 covers even a busy route across the window below.
+const FETCH_ROWS   = 30;
+// Darwin serves a 120-minute window starting at timeOffset, and caps timeWindow
+// at 120 however much you ask for — so lookback and lookahead trade directly
+// against each other. -45 keeps 45 minutes of already-departed trains and leaves
+// 75 minutes ahead. Move it towards 0 for more lookahead, away for more history.
+const FETCH_OFFSET = -45;
 
 class TrainViewModel {
 
@@ -18,6 +22,8 @@ class TrainViewModel {
     private var outward_    as Boolean;
     private var switchHour_ as Number;
     private var offset_     as Number = 0;
+    // How many rows the view can draw; set by the view on each redraw.
+    private var visibleRows_ as Number = 1;
     // Set once the user swaps direction by hand. Widgets are short-lived, so the
     // choice deliberately lasts only until this one is closed — reopening it
     // goes back to following the clock.
@@ -71,8 +77,18 @@ class TrainViewModel {
         return offset_;
     }
 
+    // The view reports how many rows it can draw, so scrolling stops with the
+    // last page full instead of trailing off to a single row.
+    function setVisibleRows(rows as Number) as Void {
+        visibleRows_ = rows > 0 ? rows : 1;
+    }
+
     function scrollDown() as Void {
-        var max = service_.getTrains().size() - 1;
+        // Bound on the list the view actually draws, not the raw service list —
+        // getTrains() drops past trains beyond the most recent 3, so the raw
+        // size let the offset run past the end and blank the screen.
+        var max = getTrains().size() - visibleRows_;
+        if (max < 0) { max = 0; }
         if (offset_ < max) {
             offset_++;
             WatchUi.requestUpdate();
@@ -139,8 +155,8 @@ class TrainViewModel {
 
     private function _genTitle() as String {
         if (outward_) {
-            return stop1_ + " -> " + stop2_;
+            return stop1_ + " > " + stop2_;
         }
-        return stop2_ + " -> " + stop1_;
+        return stop2_ + " > " + stop1_;
     }
 }
