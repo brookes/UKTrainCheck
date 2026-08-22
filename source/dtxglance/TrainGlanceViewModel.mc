@@ -34,6 +34,14 @@ class TrainGlanceViewModel {
         return _genTitle();
     }
 
+    // The departure the caption describes, or null when the caption is status
+    // text instead ("[Fetching]", an error). Lets the view colour it to match
+    // the full list: green on time, orange when late.
+    function getNextTrain() as Train or Null {
+        var trains = service_.getTrains();
+        return trains.size() > 0 ? trains[0] as Train : null;
+    }
+
     function getCaption() as String {
         var trains = service_.getTrains();
         if (trains.size() > 0) {

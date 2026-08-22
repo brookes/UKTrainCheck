@@ -39,8 +39,15 @@ class TrainGlanceView extends WatchUi.GlanceView {
         var cy   = dc.getHeight() / 2;
         var font = Graphics.FONT_GLANCE;
         var fh   = dc.getFontHeight(font);
+        // Status text stays white; a real departure is coloured like the full list.
+        var next    = viewModel_.getNextTrain();
+        var caption = Graphics.COLOR_WHITE;
+        if (next != null) {
+            caption = (next as Train).isDelayed() ? Graphics.COLOR_ORANGE : Graphics.COLOR_GREEN;
+        }
         dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_BLACK);
         dc.drawText(0, cy - fh, font,              viewModel_.getTitle(),   Graphics.TEXT_JUSTIFY_LEFT);
+        dc.setColor(caption, Graphics.COLOR_BLACK);
         dc.drawText(0, cy,      Graphics.FONT_TINY, viewModel_.getCaption(), Graphics.TEXT_JUSTIFY_LEFT);
     }
 }

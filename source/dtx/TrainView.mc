@@ -103,7 +103,7 @@ class TrainView extends WatchUi.View {
             } else if (train.isDelayed()) {
                 dc.setColor(Graphics.COLOR_ORANGE, Graphics.COLOR_BLACK);
             } else {
-                dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_BLACK);
+                dc.setColor(Graphics.COLOR_GREEN, Graphics.COLOR_BLACK);
             }
             dc.drawText(w / 2, trainsY + i * lineH, font, label, Graphics.TEXT_JUSTIFY_CENTER);
             busPrefix = "";  // only prefix the first row

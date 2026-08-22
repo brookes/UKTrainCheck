@@ -10,14 +10,20 @@ class TrainDelegate extends WatchUi.BehaviorDelegate {
         viewModel_ = viewModel;
     }
 
-    //! START/STOP — manual refresh
+    //! START/STOP — swap the direction of travel (this refetches too)
     function onSelect() as Boolean {
-        viewModel_.refresh();
+        viewModel_.toggleDirection();
         return true;
     }
 
     function onNextPage()     as Boolean { viewModel_.scrollDown(); return true; }
     function onPreviousPage() as Boolean { viewModel_.scrollUp();   return true; }
-    function onMenu()         as Boolean { return true;  }
+    //! MENU (long-press UP) — manual refresh. Not delivered on every device in
+    //! widget mode, which is why the direction swap sits on START instead.
+    function onMenu() as Boolean {
+        viewModel_.refresh();
+        return true;
+    }
+
     function onBack()         as Boolean { return false; }
 }

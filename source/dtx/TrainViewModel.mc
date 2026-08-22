@@ -18,6 +18,10 @@ class TrainViewModel {
     private var outward_    as Boolean;
     private var switchHour_ as Number;
     private var offset_     as Number = 0;
+    // Set once the user swaps direction by hand. Widgets are short-lived, so the
+    // choice deliberately lasts only until this one is closed — reopening it
+    // goes back to following the clock.
+    private var manualDirection_ as Boolean = false;
 
     function initialize(stop1 as String, stop2 as String, switchHour as Number, requester as WebRequester) {
         stop1_      = stop1;
@@ -32,13 +36,32 @@ class TrainViewModel {
         stop1_      = stop1;
         stop2_      = stop2;
         switchHour_ = switchHour;
+        // New stations mean the old manual choice no longer means anything.
+        manualDirection_ = false;
         refresh();
     }
 
     function refresh() as Void {
         offset_ = 0;
-        var now = Gregorian.info(Time.now(), Time.FORMAT_SHORT);
-        outward_ = (now.hour < switchHour_);
+        // A manual swap wins over the clock, so a refresh doesn't undo it.
+        if (!manualDirection_) {
+            var now = Gregorian.info(Time.now(), Time.FORMAT_SHORT);
+            outward_ = (now.hour < switchHour_);
+        }
+        _request();
+    }
+
+    // Swap the direction of travel and reload. Sticks until the widget closes.
+    function toggleDirection() as Void {
+        outward_         = !outward_;
+        manualDirection_ = true;
+        offset_          = 0;
+        _request();
+    }
+
+    function isOutward() as Boolean { return outward_; }
+
+    private function _request() as Void {
         var from = outward_ ? stop1_ : stop2_;
         var to   = outward_ ? stop2_ : stop1_;
         service_.request(from, to, FETCH_ROWS, FETCH_OFFSET);

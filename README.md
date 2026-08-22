@@ -7,7 +7,7 @@ trip you're at would interfere with the experience.)
 ## Features
 
 - Shows upcoming departures between two configured stations
-- Automatically switches outward/return direction at a configurable time
+- Automatically switches outward/return direction at a configurable time, or swap it by hand with a key press
 - Highlights delayed trains in orange, past trains in grey
 - Glance view shows the next departure at a glance
 - Falls back to show if a replacement bus service is running.
@@ -41,13 +41,25 @@ delay and a countdown:
 Delay is shown as `+N` minutes; the countdown always counts to the *actual*
 (delayed) departure. Status is also colour-coded:
 
-- **White** — on time or within expected time
+- **Green** — on time or within expected time
 - **Orange** — delayed
 - **Grey** — already departed (trains from up to 60 minutes ago are shown)
 - **BUS** — replacement bus service
 
 The glance view shows the next departure compactly, e.g. `08:45 +7  5m` (the
 route is already in the glance title).
+
+## Controls
+
+| Key | Action |
+|---|---|
+| **UP** / **DOWN** | Scroll the departure list |
+| **START** | Swap the direction of travel |
+| **MENU** (long-press UP) | Refresh |
+
+Swapping direction by hand overrides the automatic switch time for as long as
+the widget is open — refreshing won't undo it. Close and reopen the widget (or
+change the stations in settings) to go back to following the clock.
 
 ## Supported Devices
 
