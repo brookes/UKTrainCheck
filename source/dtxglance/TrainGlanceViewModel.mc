@@ -21,7 +21,7 @@ class TrainGlanceViewModel {
         stop1_ = Properties.getValue("Stop1") as String;
         stop2_ = Properties.getValue("Stop2") as String;
         var switchHour = Properties.getValue("SwitchHour") as Number;
-        var now = Gregorian.info(Time.now(), Time.FORMAT_LONG);
+        var now = Gregorian.info(Time.now(), Time.FORMAT_SHORT);
         outward_ = (now.hour < switchHour);
         if (outward_) {
             service_.request(stop1_, stop2_, 2, null);
@@ -38,7 +38,7 @@ class TrainGlanceViewModel {
         var trains = service_.getTrains();
         if (trains.size() > 0) {
             var train = trains[0];
-            var now = Gregorian.info(Time.now(), Time.FORMAT_LONG);
+            var now = Gregorian.info(Time.now(), Time.FORMAT_SHORT);
             var nowMinutes = now.hour * 60 + now.min;
             // Shows the scheduled time, any delay as "+N", and a minutes-to-go
             // countdown — the route itself is already in the glance title.

@@ -243,8 +243,8 @@ function testMissingDetailsAreNull(logger as Test.Logger) as Boolean {
     svc.request("WTY", "WAT", 2, null);
 
     var train = svc.getTrains()[0] as Train;
-    Test.assertEqual(train.getDestination(), null);
-    Test.assertEqual(train.getPlatform(),    null);
+    Test.assert(train.getDestination() == null);
+    Test.assert(train.getPlatform()    == null);
     return true;
 }
 
@@ -261,7 +261,7 @@ function testRequestUrlContainsFromCrs(logger as Test.Logger) as Boolean {
 
     var url = mock.lastUrl;
     Test.assertMessage(
-        url.substring(url.length() - 3, null).equals("WTY"),
+        url.substring(url.length() - 3, url.length()).equals("WTY"),
         "Expected URL to end with WTY, got: " + url
     );
     return true;

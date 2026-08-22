@@ -51,8 +51,8 @@ function testOnTimeRoundTrip(logger as Test.Logger) as Boolean {
 function testDelayMinutes(logger as Test.Logger) as Boolean {
     Test.assertEqual(new Train("14:35", "14:52").delayMinutes(), 17);
     // On time and non-time statuses have no numeric delay.
-    Test.assertEqual(new Train("14:35", "On time").delayMinutes(), null);
-    Test.assertEqual(new Train("14:35", "Cancelled").delayMinutes(), null);
+    Test.assert(new Train("14:35", "On time").delayMinutes() == null);
+    Test.assert(new Train("14:35", "Cancelled").delayMinutes() == null);
     return true;
 }
 

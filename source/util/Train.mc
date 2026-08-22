@@ -9,6 +9,10 @@ class Train {
     // Minutes-since-midnight the train actually departs: the delayed (etd) time
     // when known, otherwise the scheduled time. Used for the countdown.
     private var actualMinutes_   as Number or Null;
+    // The etd parsed as a time, or null when etd isn't one ("On time",
+    // "Cancelled", "Delayed"). Distinct from actualMinutes_, which falls back to
+    // the scheduled time so the countdown still works.
+    private var actualParsed_    as Number or Null;
     // Optional extra detail from the feed; null when unavailable.
     private var destination_     as String or Null = null;
     private var platform_        as String or Null = null;
@@ -25,8 +29,8 @@ class Train {
         }
         // Prefer the delayed time for the countdown; fall back to scheduled when
         // etd is "On time" or a non-time status (e.g. "Cancelled").
-        var actualParsed = _parseMinutes(actual_);
-        actualMinutes_   = actualParsed != null ? actualParsed : expectedMinutes_;
+        actualParsed_  = _parseMinutes(actual_);
+        actualMinutes_ = actualParsed_ != null ? actualParsed_ : expectedMinutes_;
     }
 
     function getExpected() as String  { return expected_; }
@@ -49,10 +53,10 @@ class Train {
     // Whole minutes late, or null when the delay isn't a parseable time
     // (on time, or a status like "Cancelled").
     function delayMinutes() as Number or Null {
-        if (!delayed_ || actualMinutes_ == null || expectedMinutes_ == null) {
+        if (!delayed_ || actualParsed_ == null || expectedMinutes_ == null) {
             return null;
         }
-        return (actualMinutes_ as Number) - (expectedMinutes_ as Number);
+        return (actualParsed_ as Number) - (expectedMinutes_ as Number);
     }
 
     // Minutes until departure (using the delayed time when known), or null when
@@ -108,7 +112,7 @@ class Train {
         if (comma == null) {
             return new Train(persisted, "???");
         }
-        return new Train(persisted.substring(0, comma), persisted.substring(comma + 1, null));
+        return new Train(persisted.substring(0, comma), persisted.substring(comma + 1, persisted.length()));
     }
 
     // Returns minutes since midnight for a "HH:MM" string, or null if unparseable.
@@ -118,7 +122,7 @@ class Train {
             return null;
         }
         var h = time.substring(0, colon).toNumber();
-        var m = time.substring(colon + 1, null).toNumber();
+        var m = time.substring(colon + 1, time.length()).toNumber();
         if (h == null || m == null) {
             return null;
         }

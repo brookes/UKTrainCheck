@@ -84,7 +84,7 @@ class TrainView extends WatchUi.View {
         var busPrefix  = viewModel_.isBusService() ? "BUS " : "";
         // Uses device local time. Correct when the watch is set to UK/London timezone,
         // which is the expected configuration for this app.
-        var now        = Gregorian.info(Time.now(), Time.FORMAT_LONG);
+        var now        = Gregorian.info(Time.now(), Time.FORMAT_SHORT);
         var nowMinutes = now.hour * 60 + now.min;
 
         // Read display toggles once rather than per row.

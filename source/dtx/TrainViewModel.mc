@@ -23,7 +23,7 @@ class TrainViewModel {
         stop1_      = stop1;
         stop2_      = stop2;
         switchHour_ = switchHour;
-        var now = Gregorian.info(Time.now(), Time.FORMAT_LONG);
+        var now = Gregorian.info(Time.now(), Time.FORMAT_SHORT);
         outward_ = (now.hour < switchHour_);
         service_ = new TrainService(method(:onDataChanged), requester);
     }
@@ -37,7 +37,7 @@ class TrainViewModel {
 
     function refresh() as Void {
         offset_ = 0;
-        var now = Gregorian.info(Time.now(), Time.FORMAT_LONG);
+        var now = Gregorian.info(Time.now(), Time.FORMAT_SHORT);
         outward_ = (now.hour < switchHour_);
         var from = outward_ ? stop1_ : stop2_;
         var to   = outward_ ? stop2_ : stop1_;
@@ -69,7 +69,7 @@ class TrainViewModel {
 
     function getTrains() as Array<Train> {
         var all = service_.getTrains();
-        var now = Gregorian.info(Time.now(), Time.FORMAT_LONG);
+        var now = Gregorian.info(Time.now(), Time.FORMAT_SHORT);
         var nowMinutes = now.hour * 60 + now.min;
 
         // Find the index of the first future train.

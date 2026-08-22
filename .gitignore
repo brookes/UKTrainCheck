@@ -1,2 +1,9 @@
 bin
 out
+gen
+mir
+internal-mir
+*.prg
+*.prg.debug.xml
+*-settings.json
+.DS_Store
