@@ -87,12 +87,17 @@ class TrainView extends WatchUi.View {
         var now        = Gregorian.info(Time.now(), Time.FORMAT_LONG);
         var nowMinutes = now.hour * 60 + now.min;
 
+        // Read display toggles once rather than per row.
+        var showDest      = viewModel_.showDest();
+        var showPlatform  = viewModel_.showPlatform();
+        var showCountdown = viewModel_.showCountdown();
+
         for (var i = 0; i < visible; i++) {
             var idx = offset + i;
             // Can't happen but let's check for free ;)
             if (idx >= count) { break; }
             var train = trains[idx] as Train;
-            var label = busPrefix + train.shortLabel();
+            var label = busPrefix + train.detailLabel(nowMinutes, showDest, showPlatform, showCountdown);
             if (train.isPast(nowMinutes)) {
                 dc.setColor(Graphics.COLOR_DK_GRAY, Graphics.COLOR_BLACK);
             } else if (train.isDelayed()) {

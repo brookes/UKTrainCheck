@@ -104,12 +104,31 @@ class TrainService {
         for (var i = 0; i < size; i++) {
             var svc = raw[i] as Dictionary;
             if (svc.hasKey("std") && svc.hasKey("etd")) {
-                result[i] = new Train(svc["std"] as String, svc["etd"] as String);
+                var train = new Train(svc["std"] as String, svc["etd"] as String);
+                train.setDetails(_destinationCrs(svc), _platform(svc));
+                result[i] = train;
             } else {
                 result[i] = new Train("???", "???");
             }
         }
         return result;
+    }
+
+    // Terminating station's CRS from the destination array, or null if absent.
+    private function _destinationCrs(svc as Dictionary) as String or Null {
+        if (!svc.hasKey("destination")) {
+            return null;
+        }
+        var dest = svc["destination"] as JsonArray;
+        if (dest == null || dest.size() == 0) {
+            return null;
+        }
+        var first = dest[0] as Dictionary;
+        return first.hasKey("crs") ? first["crs"] as String : null;
+    }
+
+    private function _platform(svc as Dictionary) as String or Null {
+        return svc.hasKey("platform") ? svc["platform"] as String : null;
     }
 
     // Match on the API message rather than the status code so we only show

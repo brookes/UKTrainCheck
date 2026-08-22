@@ -205,6 +205,49 @@ function testParsesMultipleTrains(logger as Test.Logger) as Boolean {
     return true;
 }
 
+// --- Destination CRS and platform are parsed onto the Train ---
+
+(:test)
+function testParsesDestinationAndPlatform(logger as Test.Logger) as Boolean {
+    var mock = new MockWebRequester();
+    mock.enqueue(200, {
+        "trainServices" => [{
+            "std"         => "06:04",
+            "etd"         => "On time",
+            "platform"    => "1",
+            "destination" => [{ "locationName" => "London Waterloo", "crs" => "WAT" }]
+        }]
+    });
+
+    var sink = new _Sink();
+    var svc  = new TrainService(new Lang.Method(sink, :notify), mock);
+    svc.request("WTY", "WAT", 2, null);
+
+    var train = svc.getTrains()[0] as Train;
+    Test.assertEqual(train.getDestination(), "WAT");
+    Test.assertEqual(train.getPlatform(),    "1");
+    return true;
+}
+
+// --- Missing destination/platform leave the Train details null ---
+
+(:test)
+function testMissingDetailsAreNull(logger as Test.Logger) as Boolean {
+    var mock = new MockWebRequester();
+    mock.enqueue(200, {
+        "trainServices" => [{ "std" => "06:04", "etd" => "On time" }]
+    });
+
+    var sink = new _Sink();
+    var svc  = new TrainService(new Lang.Method(sink, :notify), mock);
+    svc.request("WTY", "WAT", 2, null);
+
+    var train = svc.getTrains()[0] as Train;
+    Test.assertEqual(train.getDestination(), null);
+    Test.assertEqual(train.getPlatform(),    null);
+    return true;
+}
+
 // --- First call URL contains the from CRS code ---
 
 (:test)

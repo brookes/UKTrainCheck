@@ -38,9 +38,11 @@ class TrainGlanceViewModel {
         var trains = service_.getTrains();
         if (trains.size() > 0) {
             var train = trains[0];
-            // Always show actual status including "On time" — seeing it is
-            // rewarding for the user, given that we're used to trains being late.
-            var time = train.label();
+            var now = Gregorian.info(Time.now(), Time.FORMAT_LONG);
+            var nowMinutes = now.hour * 60 + now.min;
+            // Shows the scheduled time, any delay as "+N", and a minutes-to-go
+            // countdown — the route itself is already in the glance title.
+            var time = train.glanceLabel(nowMinutes);
             return service_.isBusService() ? "BUS " + time : time;
         }
         var error = service_.getError();

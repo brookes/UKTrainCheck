@@ -1,6 +1,7 @@
 import Toybox.Lang;
 import Toybox.Time;
 
+using Toybox.Application.Properties;
 using Toybox.Time.Gregorian;
 using Toybox.WatchUi;
 
@@ -85,6 +86,16 @@ class TrainViewModel {
             result[i] = all[pastStart + i] as Train;
         }
         return result;
+    }
+
+    // Display toggles — default true when the property is missing (older installs).
+    function showDest()      as Boolean { return _boolProp("ShowDest");      }
+    function showPlatform()  as Boolean { return _boolProp("ShowPlatform");  }
+    function showCountdown() as Boolean { return _boolProp("ShowCountdown"); }
+
+    private function _boolProp(key as String) as Boolean {
+        var v = Properties.getValue(key);
+        return v == null ? true : v as Boolean;
     }
 
     function isPending() as Boolean {

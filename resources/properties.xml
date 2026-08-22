@@ -10,4 +10,9 @@
     <property id="Stop1" type="String">GLD</property>
     <property id="Stop2" type="String">WAT</property>
     <property id="SwitchHour" type="Number">12</property>
+    <!-- Which extra details to append to each departure. Turn off on narrow
+         screens where the row would otherwise overflow. -->
+    <property id="ShowDest" type="Boolean">true</property>
+    <property id="ShowPlatform" type="Boolean">true</property>
+    <property id="ShowCountdown" type="Boolean">true</property>
 </properties>

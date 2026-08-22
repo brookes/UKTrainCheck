@@ -6,6 +6,12 @@ class Train {
     private var actual_          as String;
     private var delayed_         as Boolean;
     private var expectedMinutes_ as Number or Null;
+    // Minutes-since-midnight the train actually departs: the delayed (etd) time
+    // when known, otherwise the scheduled time. Used for the countdown.
+    private var actualMinutes_   as Number or Null;
+    // Optional extra detail from the feed; null when unavailable.
+    private var destination_     as String or Null = null;
+    private var platform_        as String or Null = null;
 
     function initialize(expected as String, actual as String) {
         expected_        = expected;
@@ -17,25 +23,80 @@ class Train {
             actual_  = actual;
             delayed_ = true;
         }
+        // Prefer the delayed time for the countdown; fall back to scheduled when
+        // etd is "On time" or a non-time status (e.g. "Cancelled").
+        var actualParsed = _parseMinutes(actual_);
+        actualMinutes_   = actualParsed != null ? actualParsed : expectedMinutes_;
     }
 
     function getExpected() as String  { return expected_; }
     function getActual()   as String  { return actual_;   }
     function isDelayed()   as Boolean { return delayed_;  }
 
+    // destination is the terminating station's CRS code; platform as reported.
+    function setDetails(destination as String or Null, platform as String or Null) as Void {
+        destination_ = destination;
+        platform_    = platform;
+    }
+
+    function getDestination() as String or Null { return destination_; }
+    function getPlatform()    as String or Null { return platform_;    }
+
     function isPast(nowMinutes as Number) as Boolean {
         return expectedMinutes_ != null && (expectedMinutes_ as Number) < nowMinutes;
     }
 
-    function label() as String {
-        return expected_ + " (" + actual_ + ")";
+    // Whole minutes late, or null when the delay isn't a parseable time
+    // (on time, or a status like "Cancelled").
+    function delayMinutes() as Number or Null {
+        if (!delayed_ || actualMinutes_ == null || expectedMinutes_ == null) {
+            return null;
+        }
+        return (actualMinutes_ as Number) - (expectedMinutes_ as Number);
     }
 
-    function shortLabel() as String {
-        if (!delayed_) {
-            return expected_;
+    // Minutes until departure (using the delayed time when known), or null when
+    // the departure time is unparseable. Negative once the train has left.
+    function minutesUntil(nowMinutes as Number) as Number or Null {
+        return actualMinutes_ != null ? (actualMinutes_ as Number) - nowMinutes : null;
+    }
+
+    // Full-view row: "08:45 WAT p1 +7 (5m)". Each part is optional; on-time trains
+    // omit the "+N", already-departed trains omit the countdown.
+    function detailLabel(nowMinutes as Number, showDest as Boolean, showPlatform as Boolean, showCountdown as Boolean) as String {
+        var s = expected_;
+        if (showDest && destination_ != null) {
+            s += " " + destination_;
         }
-        return expected_ + " (" + actual_ + ")";
+        if (showPlatform && platform_ != null) {
+            s += " p" + platform_;
+        }
+        if (delayed_) {
+            var dm = delayMinutes();
+            s += (dm != null && dm > 0) ? " +" + (dm as Number) : " " + actual_;
+        }
+        if (showCountdown) {
+            var mu = minutesUntil(nowMinutes);
+            if (mu != null && mu >= 0) {
+                s += " (" + (mu as Number) + "m)";
+            }
+        }
+        return s;
+    }
+
+    // Glance caption: "08:45 +7  5m". The route already appears in the glance
+    // title, so destination/platform are left out to save width.
+    function glanceLabel(nowMinutes as Number) as String {
+        var s = expected_;
+        if (delayed_) {
+            var dm = delayMinutes();
+            s += (dm != null && dm > 0) ? " +" + (dm as Number) : " " + actual_;
+        }
+        var mu = minutesUntil(nowMinutes);
+        if (mu != null && mu >= 0) {
+            s += "  " + (mu as Number) + "m";
+        }
+        return s;
     }
 
     function toStorage() as String {

@@ -3,4 +3,7 @@
     <string id="Stop1Title">Home Station CRS (e.g. GLD):</string>
     <string id="Stop2Title">Away Station CRS (e.g. WAT):</string>
     <string id="SwitchHourTitle">Switch direction after:</string>
+    <string id="ShowDestTitle">Show destination CRS:</string>
+    <string id="ShowPlatformTitle">Show platform:</string>
+    <string id="ShowCountdownTitle">Show countdown (min to go):</string>
 </strings>

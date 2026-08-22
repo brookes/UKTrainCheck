@@ -16,4 +16,13 @@
             <listEntry value="15">15:00</listEntry>
         </settingConfig>
     </setting>
+    <setting propertyKey="@Properties.ShowDest" title="@Strings.ShowDestTitle">
+        <settingConfig type="boolean" />
+    </setting>
+    <setting propertyKey="@Properties.ShowPlatform" title="@Strings.ShowPlatformTitle">
+        <settingConfig type="boolean" />
+    </setting>
+    <setting propertyKey="@Properties.ShowCountdown" title="@Strings.ShowCountdownTitle">
+        <settingConfig type="boolean" />
+    </setting>
 </settings>
