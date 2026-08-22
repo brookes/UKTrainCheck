@@ -7,12 +7,12 @@
         Instead, settings.xml uses descriptive titles with CRS format hints (e.g. "GLD"),
         and TrainService surfaces "[Bad stop code]" on a 400 response from the API.
     -->
-    <property id="Stop1" type="String">GLD</property>
-    <property id="Stop2" type="String">WAT</property>
+    <property id="Stop1" type="String">WRH</property>
+    <property id="Stop2" type="String">ECR</property>
     <property id="SwitchHour" type="Number">12</property>
     <!-- Which extra details to append to each departure. Turn off on narrow
          screens where the row would otherwise overflow. -->
-    <property id="ShowDest" type="Boolean">true</property>
+    <property id="ShowDest" type="Boolean">false</property>
     <property id="ShowPlatform" type="Boolean">true</property>
     <property id="ShowCountdown" type="Boolean">true</property>
 </properties>

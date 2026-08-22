@@ -7,3 +7,4 @@ internal-mir
 *.prg.debug.xml
 *-settings.json
 .DS_Store
+settings/
