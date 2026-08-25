@@ -53,8 +53,8 @@ class TrainGlanceViewModel {
 
     private function _genTitle() as String {
         if (outward_) {
-            return stop1_ + " -> " + stop2_;
+            return stop1_ + " 🚆 " + stop2_;
         }
-        return stop2_ + " -> " + stop1_;
+        return stop2_ + " 🚆 " + stop1_;
     }
 }

@@ -24,12 +24,15 @@ CRS codes are the 3-letter codes shown on tickets and departure boards. You can 
 
 ## Display
 
-The widget shows scheduled departure times with status:
+The heading shows the current direction as `HOME 🚆 AWAY`. Below it the widget shows
+scheduled departure times with status:
 
 - **White** — on time or within expected time
 - **Orange** — delayed
 - **Grey** — already departed (trains from up to 60 minutes ago are shown)
 - **BUS** — replacement bus service
+- **CNX** — cancelled service
+- **Delay** — delayed, no revised time given yet
 
 ## Supported Devices
 
