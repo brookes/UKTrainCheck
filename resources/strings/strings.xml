@@ -1,7 +1,9 @@
 <strings xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://developer.garmin.com/downloads/connect-iq/resources.xsd">
     <string id="AppName">UK Train Check</string>
-    <string id="Stop1Title">Home Station CRS (e.g. GLD):</string>
-    <string id="Stop2Title">Away Station CRS (e.g. WAT):</string>
+    <string id="Stop1Title">Leg 1 Station A CRS (e.g. WRH):</string>
+    <string id="Stop2Title">Leg 1 Station B CRS (e.g. ECR):</string>
+    <string id="Stop3Title">Leg 2 Station A CRS (e.g. PAD):</string>
+    <string id="Stop4Title">Leg 2 Station B CRS (e.g. WHX):</string>
     <string id="SwitchHourTitle">Switch direction after:</string>
     <string id="ShowDestTitle">Show destination CRS:</string>
     <string id="ShowPlatformTitle">Show platform:</string>

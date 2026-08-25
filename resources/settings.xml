@@ -5,6 +5,12 @@
     <setting propertyKey="@Properties.Stop2" title="@Strings.Stop2Title">
         <settingConfig type="alphaNumeric" />
     </setting>
+    <setting propertyKey="@Properties.Stop3" title="@Strings.Stop3Title">
+        <settingConfig type="alphaNumeric" />
+    </setting>
+    <setting propertyKey="@Properties.Stop4" title="@Strings.Stop4Title">
+        <settingConfig type="alphaNumeric" />
+    </setting>
     <setting propertyKey="@Properties.SwitchHour" title="@Strings.SwitchHourTitle">
         <settingConfig type="list">
             <listEntry value="9">09:00</listEntry>

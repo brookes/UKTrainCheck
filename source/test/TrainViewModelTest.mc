@@ -26,7 +26,7 @@ class _Vm {
 (:test)
 function testToggleDirectionSwapsTitle(logger as Test.Logger) as Boolean {
     var mock = new MockWebRequester();
-    var vm   = new TrainViewModel("AAA", "BBB", 12, mock);
+    var vm   = new TrainViewModel("AAA", "BBB", "CCC", "DDD", 12, mock);
 
     var before = vm.getTitle();
     _Vm.enqueueEmpty(mock);
@@ -44,7 +44,7 @@ function testToggleDirectionSwapsTitle(logger as Test.Logger) as Boolean {
 (:test)
 function testToggleDirectionSwapsRequestedStation(logger as Test.Logger) as Boolean {
     var mock = new MockWebRequester();
-    var vm   = new TrainViewModel("AAA", "BBB", 12, mock);
+    var vm   = new TrainViewModel("AAA", "BBB", "CCC", "DDD", 12, mock);
 
     _Vm.enqueueEmpty(mock);
     vm.refresh();
@@ -65,7 +65,7 @@ function testToggleDirectionSwapsRequestedStation(logger as Test.Logger) as Bool
 (:test)
 function testRefreshKeepsManualDirection(logger as Test.Logger) as Boolean {
     var mock = new MockWebRequester();
-    var vm   = new TrainViewModel("AAA", "BBB", 12, mock);
+    var vm   = new TrainViewModel("AAA", "BBB", "CCC", "DDD", 12, mock);
 
     _Vm.enqueueEmpty(mock);
     vm.refresh();
@@ -86,7 +86,7 @@ function testRefreshKeepsManualDirection(logger as Test.Logger) as Boolean {
 (:test)
 function testSettingsChangeClearsManualDirection(logger as Test.Logger) as Boolean {
     var mock = new MockWebRequester();
-    var vm   = new TrainViewModel("AAA", "BBB", 12, mock);
+    var vm   = new TrainViewModel("AAA", "BBB", "CCC", "DDD", 12, mock);
 
     _Vm.enqueueEmpty(mock);
     vm.refresh();
@@ -96,7 +96,7 @@ function testSettingsChangeClearsManualDirection(logger as Test.Logger) as Boole
     vm.toggleDirection();
 
     _Vm.enqueueEmpty(mock);
-    vm.onSettingsChanged("CCC", "DDD", 12);
+    vm.onSettingsChanged("CCC", "DDD", "EEE", "FFF", 12);
     Test.assertMessage(vm.isOutward() == fromClock, "Settings change kept the stale override");
     return true;
 }
@@ -106,7 +106,7 @@ function testSettingsChangeClearsManualDirection(logger as Test.Logger) as Boole
 (:test)
 function testToggleDirectionResetsScroll(logger as Test.Logger) as Boolean {
     var mock = new MockWebRequester();
-    var vm   = new TrainViewModel("AAA", "BBB", 12, mock);
+    var vm   = new TrainViewModel("AAA", "BBB", "CCC", "DDD", 12, mock);
 
     mock.enqueue(200, {
         "trainServices" => [
@@ -143,7 +143,7 @@ function testScrollStopsWithinTrimmedList(logger as Test.Logger) as Boolean {
     }
 
     var mock = new MockWebRequester();
-    var vm   = new TrainViewModel("AAA", "BBB", 12, mock);
+    var vm   = new TrainViewModel("AAA", "BBB", "CCC", "DDD", 12, mock);
     mock.enqueue(200, { "trainServices" => svcs });
     vm.refresh();
     vm.setVisibleRows(3);
@@ -164,7 +164,7 @@ function testScrollStopsWithinTrimmedList(logger as Test.Logger) as Boolean {
 (:test)
 function testScrollUpStopsAtTop(logger as Test.Logger) as Boolean {
     var mock = new MockWebRequester();
-    var vm   = new TrainViewModel("AAA", "BBB", 12, mock);
+    var vm   = new TrainViewModel("AAA", "BBB", "CCC", "DDD", 12, mock);
     mock.enqueue(200, {
         "trainServices" => [
             { "std" => "06:04", "etd" => "On time" },

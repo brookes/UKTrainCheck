@@ -19,6 +19,9 @@ class TrainViewModel {
     private var service_    as TrainService;
     private var stop1_      as String;
     private var stop2_      as String;
+    private var stop3_      as String;
+    private var stop4_      as String;
+    private var currentLeg_ as Number;   // 1 or 2
     private var outward_    as Boolean;
     private var switchHour_ as Number;
     private var offset_     as Number = 0;
@@ -27,40 +30,86 @@ class TrainViewModel {
     // Set once the user swaps direction by hand. Widgets are short-lived, so the
     // choice deliberately lasts only until this one is closed — reopening it
     // goes back to following the clock.
-    private var manualDirection_ as Boolean = false;
+    private var manualSelection_ as Boolean = false;
 
-    function initialize(stop1 as String, stop2 as String, switchHour as Number, requester as WebRequester) {
+    function initialize(stop1 as String, stop2 as String, stop3 as String, stop4 as String, switchHour as Number, requester as WebRequester) {
         stop1_      = stop1;
         stop2_      = stop2;
+        stop3_      = stop3;
+        stop4_      = stop4;
         switchHour_ = switchHour;
         var now = Gregorian.info(Time.now(), Time.FORMAT_SHORT);
-        outward_ = (now.hour < switchHour_);
+        var beforeSwitch = (now.hour < switchHour_);
+        currentLeg_ = beforeSwitch ? 1 : 2;
+        outward_    = true;
         service_ = new TrainService(method(:onDataChanged), requester);
     }
 
-    function onSettingsChanged(stop1 as String, stop2 as String, switchHour as Number) as Void {
+    function onSettingsChanged(stop1 as String, stop2 as String, stop3 as String, stop4 as String, switchHour as Number) as Void {
         stop1_      = stop1;
         stop2_      = stop2;
+        stop3_      = stop3;
+        stop4_      = stop4;
         switchHour_ = switchHour;
         // New stations mean the old manual choice no longer means anything.
-        manualDirection_ = false;
+        manualSelection_ = false;
         refresh();
     }
 
     function refresh() as Void {
         offset_ = 0;
-        // A manual swap wins over the clock, so a refresh doesn't undo it.
-        if (!manualDirection_) {
+        // A manual selection wins over the clock, so a refresh doesn't undo it.
+        if (!manualSelection_) {
             var now = Gregorian.info(Time.now(), Time.FORMAT_SHORT);
-            outward_ = (now.hour < switchHour_);
+            var beforeSwitch = (now.hour < switchHour_);
+            currentLeg_ = beforeSwitch ? 1 : 2;
+            outward_    = true;
         }
         _request();
     }
 
-    // Swap the direction of travel and reload. Sticks until the widget closes.
+    // Cycle through legs and directions. Sticks until the widget closes.
     function toggleDirection() as Void {
-        outward_         = !outward_;
-        manualDirection_ = true;
+        var now = Gregorian.info(Time.now(), Time.FORMAT_SHORT);
+        var beforeSwitch = (now.hour < switchHour_);
+
+        if (beforeSwitch) {
+            // Before switch: Leg1-Out → Leg1-Ret → Leg2-Out → Leg2-Ret
+            if (currentLeg_ == 1) {
+                if (outward_) {
+                    outward_ = false;
+                } else {
+                    currentLeg_ = 2;
+                    outward_    = true;
+                }
+            } else {
+                if (outward_) {
+                    outward_ = false;
+                } else {
+                    currentLeg_ = 1;
+                    outward_    = true;
+                }
+            }
+        } else {
+            // After switch: Leg2-Out → Leg2-Ret → Leg1-Out → Leg1-Ret
+            if (currentLeg_ == 2) {
+                if (outward_) {
+                    outward_ = false;
+                } else {
+                    currentLeg_ = 1;
+                    outward_    = true;
+                }
+            } else {
+                if (outward_) {
+                    outward_ = false;
+                } else {
+                    currentLeg_ = 2;
+                    outward_    = true;
+                }
+            }
+        }
+
+        manualSelection_ = true;
         offset_          = 0;
         _request();
     }
@@ -68,8 +117,16 @@ class TrainViewModel {
     function isOutward() as Boolean { return outward_; }
 
     private function _request() as Void {
-        var from = outward_ ? stop1_ : stop2_;
-        var to   = outward_ ? stop2_ : stop1_;
+        var from;
+        var to;
+
+        if (currentLeg_ == 1) {
+            from = outward_ ? stop1_ : stop2_;
+            to   = outward_ ? stop2_ : stop1_;
+        } else {
+            from = outward_ ? stop3_ : stop4_;
+            to   = outward_ ? stop4_ : stop3_;
+        }
         service_.request(from, to, FETCH_ROWS, FETCH_OFFSET);
     }
 
@@ -154,9 +211,16 @@ class TrainViewModel {
     }
 
     private function _genTitle() as String {
-        if (outward_) {
-            return stop1_ + " > " + stop2_;
+        if (currentLeg_ == 1) {
+            if (outward_) {
+                return stop1_ + " > " + stop2_;
+            }
+            return stop2_ + " > " + stop1_;
+        } else {
+            if (outward_) {
+                return stop3_ + " > " + stop4_;
+            }
+            return stop4_ + " > " + stop3_;
         }
-        return stop2_ + " > " + stop1_;
     }
 }

@@ -48,9 +48,11 @@ class UKTrainCheckApp extends Application.AppBase {
         Log.println("Settings changed");
         var stop1      = Properties.getValue("Stop1") as String;
         var stop2      = Properties.getValue("Stop2") as String;
+        var stop3      = Properties.getValue("Stop3") as String;
+        var stop4      = Properties.getValue("Stop4") as String;
         var switchHour = Properties.getValue("SwitchHour") as Number;
         if (mainViewModel_ != null) {
-            (mainViewModel_ as TrainViewModel).onSettingsChanged(stop1, stop2, switchHour);
+            (mainViewModel_ as TrainViewModel).onSettingsChanged(stop1, stop2, stop3, stop4, switchHour);
         }
         WatchUi.requestUpdate();
     }
@@ -65,8 +67,10 @@ class UKTrainCheckApp extends Application.AppBase {
     function getInitialView() as [Views] or [Views, InputDelegates] {
         var stop1      = Properties.getValue("Stop1") as String;
         var stop2      = Properties.getValue("Stop2") as String;
+        var stop3      = Properties.getValue("Stop3") as String;
+        var stop4      = Properties.getValue("Stop4") as String;
         var switchHour = Properties.getValue("SwitchHour") as Number;
-        mainViewModel_ = new TrainViewModel(stop1, stop2, switchHour, new WebRequester());
+        mainViewModel_ = new TrainViewModel(stop1, stop2, stop3, stop4, switchHour, new WebRequester());
         var view = new TrainView(mainViewModel_);
         var delegate = new TrainDelegate(mainViewModel_);
         return [ view, delegate ];

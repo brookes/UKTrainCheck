@@ -10,6 +10,9 @@ class TrainGlanceViewModel {
 
     private var stop1_   as String  = "";
     private var stop2_   as String  = "";
+    private var stop3_   as String  = "";
+    private var stop4_   as String  = "";
+    private var currentLeg_ as Number = 1;
     private var outward_ as Boolean = true;
     private var service_ as TrainService;
 
@@ -20,14 +23,24 @@ class TrainGlanceViewModel {
     function refresh() as Void {
         stop1_ = Properties.getValue("Stop1") as String;
         stop2_ = Properties.getValue("Stop2") as String;
+        stop3_ = Properties.getValue("Stop3") as String;
+        stop4_ = Properties.getValue("Stop4") as String;
         var switchHour = Properties.getValue("SwitchHour") as Number;
         var now = Gregorian.info(Time.now(), Time.FORMAT_SHORT);
-        outward_ = (now.hour < switchHour);
-        if (outward_) {
-            service_.request(stop1_, stop2_, 2, null);
+        var beforeSwitch = (now.hour < switchHour);
+        currentLeg_ = beforeSwitch ? 1 : 2;
+        outward_ = true;
+
+        var from;
+        var to;
+        if (currentLeg_ == 1) {
+            from = stop1_;
+            to   = stop2_;
         } else {
-            service_.request(stop2_, stop1_, 2, null);
+            from = stop3_;
+            to   = stop4_;
         }
+        service_.request(from, to, 2, null);
     }
 
     function getTitle() as String {
@@ -62,9 +75,16 @@ class TrainGlanceViewModel {
     }
 
     private function _genTitle() as String {
-        if (outward_) {
-            return stop1_ + " > " + stop2_;
+        if (currentLeg_ == 1) {
+            if (outward_) {
+                return stop1_ + " > " + stop2_;
+            }
+            return stop2_ + " > " + stop1_;
+        } else {
+            if (outward_) {
+                return stop3_ + " > " + stop4_;
+            }
+            return stop4_ + " > " + stop3_;
         }
-        return stop2_ + " > " + stop1_;
     }
 }

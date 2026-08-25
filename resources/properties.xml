@@ -9,6 +9,8 @@
     -->
     <property id="Stop1" type="String">WRH</property>
     <property id="Stop2" type="String">ECR</property>
+    <property id="Stop3" type="String">PAD</property>
+    <property id="Stop4" type="String">WHX</property>
     <property id="SwitchHour" type="Number">12</property>
     <!-- Which extra details to append to each departure. Turn off on narrow
          screens where the row would otherwise overflow. -->
