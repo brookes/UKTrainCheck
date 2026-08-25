@@ -10,8 +10,10 @@ class TrainGlanceViewModel {
 
     private var stop1_   as String  = "";
     private var stop2_   as String  = "";
-    private var stop3_   as String  = "";
-    private var stop4_   as String  = "";
+    // Leg 2 is optional, and an install predating these properties stores no
+    // value for them, so null arrives here as readily as a blank string.
+    private var stop3_   as String or Null = null;
+    private var stop4_   as String or Null = null;
     private var currentLeg_ as Number = 1;
     private var outward_ as Boolean = true;
     private var service_ as TrainService;
@@ -23,12 +25,13 @@ class TrainGlanceViewModel {
     function refresh() as Void {
         stop1_ = Properties.getValue("Stop1") as String;
         stop2_ = Properties.getValue("Stop2") as String;
-        stop3_ = Properties.getValue("Stop3") as String;
-        stop4_ = Properties.getValue("Stop4") as String;
+        stop3_ = Properties.getValue("Stop3") as String or Null;
+        stop4_ = Properties.getValue("Stop4") as String or Null;
         var switchHour = Properties.getValue("SwitchHour") as Number;
+        var hasLeg2 = stop3_ != null && (stop3_ as String).length() > 0
+                   && stop4_ != null && (stop4_ as String).length() > 0;
         var now = Gregorian.info(Time.now(), Time.FORMAT_SHORT);
-        var beforeSwitch = (now.hour < switchHour);
-        currentLeg_ = beforeSwitch ? 1 : 2;
+        currentLeg_ = (hasLeg2 && now.hour >= switchHour) ? 2 : 1;
         outward_ = true;
 
         var from;
@@ -37,8 +40,8 @@ class TrainGlanceViewModel {
             from = stop1_;
             to   = stop2_;
         } else {
-            from = stop3_;
-            to   = stop4_;
+            from = stop3_ as String;
+            to   = stop4_ as String;
         }
         service_.request(from, to, 2, null);
     }

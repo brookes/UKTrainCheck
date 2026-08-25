@@ -23,10 +23,12 @@ class _Vm {
 
 // --- Toggling swaps the title ---
 
+// Leg 2 is left unset so the cycle is just the two leg-1 directions, whatever
+// the clock says. testToggleCyclesThroughBothLegs covers the two-leg case.
 (:test)
 function testToggleDirectionSwapsTitle(logger as Test.Logger) as Boolean {
     var mock = new MockWebRequester();
-    var vm   = new TrainViewModel("AAA", "BBB", "CCC", "DDD", 12, mock);
+    var vm   = new TrainViewModel("AAA", "BBB", "", "", 12, mock);
 
     var before = vm.getTitle();
     _Vm.enqueueEmpty(mock);
@@ -39,12 +41,91 @@ function testToggleDirectionSwapsTitle(logger as Test.Logger) as Boolean {
     return true;
 }
 
+// --- Toggling walks all four routes when leg 2 is configured ---
+//
+// Which route comes first depends on the clock, so this asserts on the set of
+// routes visited over a full cycle rather than their order: whatever the time,
+// four presses must show both directions of both legs and then come back round.
+(:test)
+function testToggleCyclesThroughBothLegs(logger as Test.Logger) as Boolean {
+    var mock = new MockWebRequester();
+    var vm   = new TrainViewModel("AAA", "BBB", "CCC", "DDD", 12, mock);
+
+    _Vm.enqueueEmpty(mock);
+    vm.refresh();
+
+    var seen  = [ vm.getTitle() ] as Array<String>;
+    var first = vm.getTitle();
+    for (var i = 0; i < 3; i++) {
+        _Vm.enqueueEmpty(mock);
+        vm.toggleDirection();
+        seen.add(vm.getTitle());
+    }
+
+    var wanted = [ "AAA > BBB", "BBB > AAA", "CCC > DDD", "DDD > CCC" ] as Array<String>;
+    for (var i = 0; i < wanted.size(); i++) {
+        Test.assertMessage(seen.indexOf(wanted[i]) >= 0,
+            "Cycle never showed " + wanted[i] + "; saw " + seen.toString());
+    }
+
+    // A fourth press returns to where the cycle started.
+    _Vm.enqueueEmpty(mock);
+    vm.toggleDirection();
+    Test.assertMessage(vm.getTitle().equals(first),
+        "Cycle did not wrap: expected " + first + ", got " + vm.getTitle());
+    return true;
+}
+
+// --- With leg 2 unset the toggle stays on leg 1 ---
+
+(:test)
+function testToggleStaysOnLegOneWhenLegTwoUnset(logger as Test.Logger) as Boolean {
+    var mock = new MockWebRequester();
+    var vm   = new TrainViewModel("AAA", "BBB", "", "", 12, mock);
+
+    _Vm.enqueueEmpty(mock);
+    vm.refresh();
+
+    for (var i = 0; i < 4; i++) {
+        var title = vm.getTitle();
+        Test.assertMessage(title.equals("AAA > BBB") || title.equals("BBB > AAA"),
+            "Left leg 1 with no leg 2 configured: " + title);
+        _Vm.enqueueEmpty(mock);
+        vm.toggleDirection();
+    }
+    return true;
+}
+
+// --- An install predating leg 2 hands back null, not a blank string ---
+//
+// Properties.getValue() returns null for a key the stored settings have never
+// held, and a sideloaded install keeps its own settings file — so upgrading to
+// a build that adds Stop3/Stop4 delivers null here. That must read as "no leg
+// 2" rather than throwing on a method call against null.
+(:test)
+function testNullLegTwoBehavesAsUnset(logger as Test.Logger) as Boolean {
+    var mock = new MockWebRequester();
+    var vm   = new TrainViewModel("AAA", "BBB", null, null, 12, mock);
+
+    _Vm.enqueueEmpty(mock);
+    vm.refresh();
+
+    for (var i = 0; i < 4; i++) {
+        var title = vm.getTitle();
+        Test.assertMessage(title.equals("AAA > BBB") || title.equals("BBB > AAA"),
+            "Null leg 2 should stay on leg 1, got " + title);
+        _Vm.enqueueEmpty(mock);
+        vm.toggleDirection();
+    }
+    return true;
+}
+
 // --- Toggling asks the API for the other station ---
 
 (:test)
 function testToggleDirectionSwapsRequestedStation(logger as Test.Logger) as Boolean {
     var mock = new MockWebRequester();
-    var vm   = new TrainViewModel("AAA", "BBB", "CCC", "DDD", 12, mock);
+    var vm   = new TrainViewModel("AAA", "BBB", "", "", 12, mock);
 
     _Vm.enqueueEmpty(mock);
     vm.refresh();

@@ -19,8 +19,11 @@ class TrainViewModel {
     private var service_    as TrainService;
     private var stop1_      as String;
     private var stop2_      as String;
-    private var stop3_      as String;
-    private var stop4_      as String;
+    // Leg 2 is optional. An install that predates these properties has no value
+    // stored for them, so the API hands back null rather than the built-in
+    // default — treated here the same as blank: leg 2 simply doesn't exist.
+    private var stop3_      as String or Null;
+    private var stop4_      as String or Null;
     private var currentLeg_ as Number;   // 1 or 2
     private var outward_    as Boolean;
     private var switchHour_ as Number;
@@ -32,20 +35,18 @@ class TrainViewModel {
     // goes back to following the clock.
     private var manualSelection_ as Boolean = false;
 
-    function initialize(stop1 as String, stop2 as String, stop3 as String, stop4 as String, switchHour as Number, requester as WebRequester) {
+    function initialize(stop1 as String, stop2 as String, stop3 as String or Null, stop4 as String or Null, switchHour as Number, requester as WebRequester) {
         stop1_      = stop1;
         stop2_      = stop2;
         stop3_      = stop3;
         stop4_      = stop4;
         switchHour_ = switchHour;
-        var now = Gregorian.info(Time.now(), Time.FORMAT_SHORT);
-        var beforeSwitch = (now.hour < switchHour_);
-        currentLeg_ = beforeSwitch ? 1 : 2;
+        currentLeg_ = _clockLeg();
         outward_    = true;
         service_ = new TrainService(method(:onDataChanged), requester);
     }
 
-    function onSettingsChanged(stop1 as String, stop2 as String, stop3 as String, stop4 as String, switchHour as Number) as Void {
+    function onSettingsChanged(stop1 as String, stop2 as String, stop3 as String or Null, stop4 as String or Null, switchHour as Number) as Void {
         stop1_      = stop1;
         stop2_      = stop2;
         stop3_      = stop3;
@@ -56,14 +57,25 @@ class TrainViewModel {
         refresh();
     }
 
+    // Blank or absent either side means there is no second journey to show.
+    private function _hasLeg2() as Boolean {
+        return stop3_ != null && (stop3_ as String).length() > 0
+            && stop4_ != null && (stop4_ as String).length() > 0;
+    }
+
+    // The leg the clock points at: leg 1 in the morning, leg 2 after the switch
+    // hour — or leg 1 all day when there is no leg 2 configured.
+    private function _clockLeg() as Number {
+        if (!_hasLeg2()) { return 1; }
+        var now = Gregorian.info(Time.now(), Time.FORMAT_SHORT);
+        return (now.hour < switchHour_) ? 1 : 2;
+    }
+
     function refresh() as Void {
         offset_ = 0;
         // A manual selection wins over the clock, so a refresh doesn't undo it.
         if (!manualSelection_) {
-            var leg2Available = stop3_.length() > 0 && stop4_.length() > 0;
-            var now = Gregorian.info(Time.now(), Time.FORMAT_SHORT);
-            var beforeSwitch = (now.hour < switchHour_);
-            currentLeg_ = (leg2Available && !beforeSwitch) ? 2 : 1;
+            currentLeg_ = _clockLeg();
             outward_    = true;
         }
         _request();
@@ -71,10 +83,8 @@ class TrainViewModel {
 
     // Cycle through legs and directions. Sticks until the widget closes.
     function toggleDirection() as Void {
-        var leg2Available = stop3_.length() > 0 && stop4_.length() > 0;
-
         // If leg 2 is not configured, just toggle direction on leg 1
-        if (!leg2Available) {
+        if (!_hasLeg2()) {
             outward_ = !outward_;
         } else {
             var now = Gregorian.info(Time.now(), Time.FORMAT_SHORT);
