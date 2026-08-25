@@ -24,8 +24,9 @@ class TrainViewModel {
     // default — treated here the same as blank: leg 2 simply doesn't exist.
     private var stop3_      as String or Null;
     private var stop4_      as String or Null;
-    private var currentLeg_ as Number;   // 1 or 2
-    private var outward_    as Boolean;
+    // Position in the cycle below. Leg and direction are both read off it, so
+    // there is only ever one thing to move.
+    private var step_       as Number;
     private var switchHour_ as Number;
     private var offset_     as Number = 0;
     // How many rows the view can draw; set by the view on each redraw.
@@ -41,8 +42,7 @@ class TrainViewModel {
         stop3_      = stop3;
         stop4_      = stop4;
         switchHour_ = switchHour;
-        currentLeg_ = _clockLeg();
-        outward_    = true;
+        step_       = _clockStep();
         service_ = new TrainService(method(:onDataChanged), requester);
     }
 
@@ -63,87 +63,68 @@ class TrainViewModel {
             && stop4_ != null && (stop4_ as String).length() > 0;
     }
 
-    // The leg the clock points at: leg 1 in the morning, leg 2 after the switch
-    // hour — or leg 1 all day when there is no leg 2 configured.
-    private function _clockLeg() as Number {
-        if (!_hasLeg2()) { return 1; }
+    // The cycle runs outbound-first through both legs:
+    //
+    //   0  stop1 > stop2     leg 1 out
+    //   1  stop2 > stop1     leg 1 back
+    //   2  stop3 > stop4     leg 2 out
+    //   3  stop4 > stop3     leg 2 back
+    //
+    // Mornings walk it forwards from 0. Afternoons are the same journeys in
+    // reverse, so they walk it backwards from the end — starting on the far
+    // return, which is the train you actually want after the switch hour.
+    // Without a leg 2 the cycle is just steps 0 and 1, and the same rule leaves
+    // the afternoon starting on step 1, the way it did before leg 2 existed.
+    private function _steps() as Number {
+        return _hasLeg2() ? 4 : 2;
+    }
+
+    private function _forwards() as Boolean {
         var now = Gregorian.info(Time.now(), Time.FORMAT_SHORT);
-        return (now.hour < switchHour_) ? 1 : 2;
+        return now.hour < switchHour_;
+    }
+
+    private function _clockStep() as Number {
+        return _forwards() ? 0 : _steps() - 1;
     }
 
     function refresh() as Void {
         offset_ = 0;
         // A manual selection wins over the clock, so a refresh doesn't undo it.
         if (!manualSelection_) {
-            currentLeg_ = _clockLeg();
-            outward_    = true;
+            step_ = _clockStep();
         }
         _request();
     }
 
-    // Cycle through legs and directions. Sticks until the widget closes.
+    // Move one place along the cycle and reload. Sticks until the widget closes.
     function toggleDirection() as Void {
-        // If leg 2 is not configured, just toggle direction on leg 1
-        if (!_hasLeg2()) {
-            outward_ = !outward_;
-        } else {
-            var now = Gregorian.info(Time.now(), Time.FORMAT_SHORT);
-            var beforeSwitch = (now.hour < switchHour_);
-
-            if (beforeSwitch) {
-                // Before switch: Leg1-Out → Leg1-Ret → Leg2-Out → Leg2-Ret
-                if (currentLeg_ == 1) {
-                    if (outward_) {
-                        outward_ = false;
-                    } else {
-                        currentLeg_ = 2;
-                        outward_    = true;
-                    }
-                } else {
-                    if (outward_) {
-                        outward_ = false;
-                    } else {
-                        currentLeg_ = 1;
-                        outward_    = true;
-                    }
-                }
-            } else {
-                // After switch: Leg2-Out → Leg2-Ret → Leg1-Out → Leg1-Ret
-                if (currentLeg_ == 2) {
-                    if (outward_) {
-                        outward_ = false;
-                    } else {
-                        currentLeg_ = 1;
-                        outward_    = true;
-                    }
-                } else {
-                    if (outward_) {
-                        outward_ = false;
-                    } else {
-                        currentLeg_ = 2;
-                        outward_    = true;
-                    }
-                }
-            }
-        }
+        var n = _steps();
+        // Guards the step a shrinking cycle leaves out of range: dropping leg 2
+        // in settings clears the manual flag, but a stale step must not survive
+        // to index a station that is no longer there.
+        if (step_ >= n) { step_ = n - 1; }
+        step_ = _forwards() ? (step_ + 1) % n : (step_ + n - 1) % n;
 
         manualSelection_ = true;
         offset_          = 0;
         _request();
     }
 
-    function isOutward() as Boolean { return outward_; }
+    function isOutward() as Boolean { return (step_ % 2) == 0; }
+
+    private function _isLeg1() as Boolean { return step_ < 2; }
 
     private function _request() as Void {
         var from;
         var to;
 
-        if (currentLeg_ == 1) {
-            from = outward_ ? stop1_ : stop2_;
-            to   = outward_ ? stop2_ : stop1_;
+        if (_isLeg1()) {
+            from = isOutward() ? stop1_ : stop2_;
+            to   = isOutward() ? stop2_ : stop1_;
         } else {
-            from = outward_ ? stop3_ : stop4_;
-            to   = outward_ ? stop4_ : stop3_;
+            from = isOutward() ? stop3_ : stop4_;
+            to   = isOutward() ? stop4_ : stop3_;
         }
         service_.request(from, to, FETCH_ROWS, FETCH_OFFSET);
     }
@@ -229,16 +210,11 @@ class TrainViewModel {
     }
 
     private function _genTitle() as String {
-        if (currentLeg_ == 1) {
-            if (outward_) {
-                return stop1_ + " > " + stop2_;
-            }
-            return stop2_ + " > " + stop1_;
-        } else {
-            if (outward_) {
-                return stop3_ + " > " + stop4_;
-            }
-            return stop4_ + " > " + stop3_;
+        if (_isLeg1()) {
+            return isOutward() ? stop1_ + " > " + stop2_
+                               : stop2_ + " > " + stop1_;
         }
+        return isOutward() ? stop3_ + " > " + stop4_
+                           : stop4_ + " > " + stop3_;
     }
 }

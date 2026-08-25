@@ -41,11 +41,11 @@ function testToggleDirectionSwapsTitle(logger as Test.Logger) as Boolean {
     return true;
 }
 
-// --- Toggling walks all four routes when leg 2 is configured ---
+// --- Toggling walks all four routes, in the order the clock dictates ---
 //
-// Which route comes first depends on the clock, so this asserts on the set of
-// routes visited over a full cycle rather than their order: whatever the time,
-// four presses must show both directions of both legs and then come back round.
+// The test can't set the clock, so it pins both orderings and requires the run
+// to match one of them exactly: mornings go out-first from leg 1, afternoons
+// run the same journeys backwards starting on the far return.
 (:test)
 function testToggleCyclesThroughBothLegs(logger as Test.Logger) as Boolean {
     var mock = new MockWebRequester();
@@ -54,25 +54,23 @@ function testToggleCyclesThroughBothLegs(logger as Test.Logger) as Boolean {
     _Vm.enqueueEmpty(mock);
     vm.refresh();
 
-    var seen  = [ vm.getTitle() ] as Array<String>;
-    var first = vm.getTitle();
-    for (var i = 0; i < 3; i++) {
+    // Five titles: the four steps, then the wrap back to the first.
+    var seen = [ vm.getTitle() ] as Array<String>;
+    for (var i = 0; i < 4; i++) {
         _Vm.enqueueEmpty(mock);
         vm.toggleDirection();
         seen.add(vm.getTitle());
     }
 
-    var wanted = [ "AAA > BBB", "BBB > AAA", "CCC > DDD", "DDD > CCC" ] as Array<String>;
-    for (var i = 0; i < wanted.size(); i++) {
-        Test.assertMessage(seen.indexOf(wanted[i]) >= 0,
-            "Cycle never showed " + wanted[i] + "; saw " + seen.toString());
-    }
+    var morning   = [ "AAA > BBB", "BBB > AAA", "CCC > DDD", "DDD > CCC", "AAA > BBB" ] as Array<String>;
+    var afternoon = [ "DDD > CCC", "CCC > DDD", "BBB > AAA", "AAA > BBB", "DDD > CCC" ] as Array<String>;
 
-    // A fourth press returns to where the cycle started.
-    _Vm.enqueueEmpty(mock);
-    vm.toggleDirection();
-    Test.assertMessage(vm.getTitle().equals(first),
-        "Cycle did not wrap: expected " + first + ", got " + vm.getTitle());
+    var wanted = seen[0].equals(morning[0]) ? morning : afternoon;
+    for (var i = 0; i < wanted.size(); i++) {
+        Test.assertMessage(seen[i].equals(wanted[i]),
+            "Step " + i + " was " + seen[i] + ", expected " + wanted[i]
+            + " (full run: " + seen.toString() + ")");
+    }
     return true;
 }
 
