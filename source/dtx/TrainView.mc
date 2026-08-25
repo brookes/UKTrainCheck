@@ -45,6 +45,20 @@ class TrainView extends WatchUi.View {
         var trains = viewModel_.getTrains();
         var count  = trains.size();
 
+        if (count == 0) {
+            // Status messages ([Fetching], errors) get a smaller font than the
+            // train rows, and the title/message pair is centred on the screen.
+            var statusFont = Graphics.FONT_TINY;
+            var statusFh   = dc.getFontHeight(statusFont);
+            var error      = viewModel_.getError();
+            var msg        = viewModel_.isPending() ? "[Fetching]" : (error != null ? error : "[No trains]");
+            var groupTop   = (h - (titleFh + gap + statusFh)) / 2;
+            dc.drawText(w / 2, groupTop, titleFont, title, Graphics.TEXT_JUSTIFY_CENTER);
+            dc.drawText(w / 2, groupTop + titleFh + gap + statusFh / 2, statusFont, msg,
+                        Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+            return;
+        }
+
         // How many train rows fit on screen — calculated from actual screen height
         // so this works across all device sizes without hardcoding.
         var maxVisible = (h - titleFh - gap) / lineH;
@@ -56,20 +70,13 @@ class TrainView extends WatchUi.View {
 
         // Vertically center the visible block (title + visible rows) so the title
         // lands in the wider part of the round screen rather than near the top.
-        var blockH = titleFh + gap + (visible > 0 ? visible * lineH : fh);
+        var blockH = titleFh + gap + visible * lineH;
         // Shift down slightly so the title lands in the wider part of round screens.
         var startY = (h - blockH) / 2 + 8;
 
         dc.drawText(w / 2, startY, titleFont, title, Graphics.TEXT_JUSTIFY_CENTER);
 
         var trainsY = startY + titleFh + gap;
-
-        if (count == 0) {
-            var error = viewModel_.getError();
-            var msg = viewModel_.isPending() ? "[Fetching]" : (error != null ? error : "[No trains]");
-            dc.drawText(w / 2, trainsY, font, msg, Graphics.TEXT_JUSTIFY_CENTER);
-            return;
-        }
 
         // Scroll indicators — shown in dark grey at the screen edges when
         // there are trains above or below the current window.

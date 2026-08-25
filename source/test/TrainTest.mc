@@ -44,3 +44,29 @@ function testOnTimeRoundTrip(logger as Test.Logger) as Boolean {
     Test.assert(!t2.isDelayed());
     return true;
 }
+
+(:test)
+function testCancelledIsAbbreviated(logger as Test.Logger) as Boolean {
+    var t = new Train("14:35", "Cancelled");
+    Test.assertEqual(t.getActual(), "CNX");
+    Test.assert(t.isDelayed());
+    return true;
+}
+
+(:test)
+function testDelayedIsAbbreviated(logger as Test.Logger) as Boolean {
+    var t = new Train("14:35", "Delayed");
+    Test.assertEqual(t.getActual(), "Delay");
+    Test.assert(t.isDelayed());
+    return true;
+}
+
+(:test)
+function testCancelledRoundTrip(logger as Test.Logger) as Boolean {
+    var t1 = new Train("14:35", "Cancelled");
+    var t2 = Train.fromStorage(t1.toStorage());
+    Test.assertEqual(t2.getExpected(), "14:35");
+    Test.assertEqual(t2.getActual(),   "CNX");
+    Test.assert(t2.isDelayed());
+    return true;
+}

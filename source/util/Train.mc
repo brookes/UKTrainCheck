@@ -14,7 +14,7 @@ class Train {
             actual_  = "On time";
             delayed_ = false;
         } else {
-            actual_  = actual;
+            actual_  = _abbreviate(actual);
             delayed_ = true;
         }
     }
@@ -48,6 +48,15 @@ class Train {
             return new Train(persisted, "???");
         }
         return new Train(persisted.substring(0, comma), persisted.substring(comma + 1, null));
+    }
+
+    // The departure board returns free-text status words; shorten the long
+    // ones so they fit alongside the time on a watch screen.
+    private static function _abbreviate(actual as String) as String {
+        var lower = actual.toLower();
+        if (lower.equals("cancelled")) { return "CNX";   }
+        if (lower.equals("delayed"))   { return "Delay"; }
+        return actual;
     }
 
     // Returns minutes since midnight for a "HH:MM" string, or null if unparseable.
