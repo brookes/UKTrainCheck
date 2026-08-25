@@ -19,6 +19,12 @@ class _Vm {
         var url = mock.lastUrl;
         return url.substring(url.length() - 3, url.length());
     }
+
+    // Built from HEADING_SEP rather than spelling the separator out, so
+    // changing the heading glyph doesn't mean rewriting every expectation.
+    static function route(from as String, to as String) as String {
+        return from + HEADING_SEP + to;
+    }
 }
 
 // --- Toggling swaps the title ---
@@ -36,8 +42,8 @@ function testToggleDirectionSwapsTitle(logger as Test.Logger) as Boolean {
     var after = vm.getTitle();
 
     Test.assertMessage(!before.equals(after), "Title unchanged after toggle: " + before);
-    Test.assert(before.equals("AAA > BBB") || before.equals("BBB > AAA"));
-    Test.assert(after.equals("AAA > BBB")  || after.equals("BBB > AAA"));
+    Test.assert(before.equals(_Vm.route("AAA", "BBB")) || before.equals(_Vm.route("BBB", "AAA")));
+    Test.assert(after.equals(_Vm.route("AAA", "BBB"))  || after.equals(_Vm.route("BBB", "AAA")));
     return true;
 }
 
@@ -62,8 +68,8 @@ function testToggleCyclesThroughBothLegs(logger as Test.Logger) as Boolean {
         seen.add(vm.getTitle());
     }
 
-    var morning   = [ "AAA > BBB", "BBB > AAA", "CCC > DDD", "DDD > CCC", "AAA > BBB" ] as Array<String>;
-    var afternoon = [ "DDD > CCC", "CCC > DDD", "BBB > AAA", "AAA > BBB", "DDD > CCC" ] as Array<String>;
+    var morning   = [ _Vm.route("AAA", "BBB"), _Vm.route("BBB", "AAA"), _Vm.route("CCC", "DDD"), _Vm.route("DDD", "CCC"), _Vm.route("AAA", "BBB") ] as Array<String>;
+    var afternoon = [ _Vm.route("DDD", "CCC"), _Vm.route("CCC", "DDD"), _Vm.route("BBB", "AAA"), _Vm.route("AAA", "BBB"), _Vm.route("DDD", "CCC") ] as Array<String>;
 
     var wanted = seen[0].equals(morning[0]) ? morning : afternoon;
     for (var i = 0; i < wanted.size(); i++) {
@@ -86,7 +92,7 @@ function testToggleStaysOnLegOneWhenLegTwoUnset(logger as Test.Logger) as Boolea
 
     for (var i = 0; i < 4; i++) {
         var title = vm.getTitle();
-        Test.assertMessage(title.equals("AAA > BBB") || title.equals("BBB > AAA"),
+        Test.assertMessage(title.equals(_Vm.route("AAA", "BBB")) || title.equals(_Vm.route("BBB", "AAA")),
             "Left leg 1 with no leg 2 configured: " + title);
         _Vm.enqueueEmpty(mock);
         vm.toggleDirection();
@@ -110,7 +116,7 @@ function testNullLegTwoBehavesAsUnset(logger as Test.Logger) as Boolean {
 
     for (var i = 0; i < 4; i++) {
         var title = vm.getTitle();
-        Test.assertMessage(title.equals("AAA > BBB") || title.equals("BBB > AAA"),
+        Test.assertMessage(title.equals(_Vm.route("AAA", "BBB")) || title.equals(_Vm.route("BBB", "AAA")),
             "Null leg 2 should stay on leg 1, got " + title);
         _Vm.enqueueEmpty(mock);
         vm.toggleDirection();

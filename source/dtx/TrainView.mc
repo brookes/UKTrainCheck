@@ -58,6 +58,21 @@ class TrainView extends WatchUi.View {
         var trains = viewModel_.getTrains();
         var count  = trains.size();
 
+        if (count == 0) {
+            // Nothing to scroll, so the empty state ignores the row layout below
+            // and centres the title/message pair instead. Status messages
+            // ([Fetching], errors) get a smaller font than the train rows.
+            var statusFont = Graphics.FONT_TINY;
+            var statusFh   = dc.getFontHeight(statusFont);
+            var error      = viewModel_.getError();
+            var msg        = viewModel_.isPending() ? "[Fetching]" : (error != null ? error : "[No trains]");
+            var groupTop   = (h - (titleFh + gap + statusFh)) / 2;
+            dc.drawText(w / 2, groupTop, titleFont, title, Graphics.TEXT_JUSTIFY_CENTER);
+            dc.drawText(w / 2, groupTop + titleFh + gap + statusFh / 2, statusFont, msg,
+                        Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+            return;
+        }
+
         // Read display toggles once rather than per row.
         var showDest      = viewModel_.showDest();
         var showPlatform  = viewModel_.showPlatform();
@@ -87,13 +102,6 @@ class TrainView extends WatchUi.View {
         if (visible < 0) { visible = 0; }
 
         dc.drawText(w / 2, titleY, titleFont, title, Graphics.TEXT_JUSTIFY_CENTER);
-
-        if (count == 0) {
-            var error = viewModel_.getError();
-            var msg = viewModel_.isPending() ? "[Fetching]" : (error != null ? error : "[No trains]");
-            dc.drawText(w / 2, trainsY, font, msg, Graphics.TEXT_JUSTIFY_CENTER);
-            return;
-        }
 
         // Scroll indicators flank the title: the rows now fill the usable band,
         // so there's no spare line above or below them to put arrows on.

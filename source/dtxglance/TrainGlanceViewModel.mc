@@ -79,15 +79,10 @@ class TrainGlanceViewModel {
 
     private function _genTitle() as String {
         if (currentLeg_ == 1) {
-            if (outward_) {
-                return stop1_ + " > " + stop2_;
-            }
-            return stop2_ + " > " + stop1_;
-        } else {
-            if (outward_) {
-                return stop3_ + " > " + stop4_;
-            }
-            return stop4_ + " > " + stop3_;
+            return outward_ ? stop1_ + HEADING_SEP + stop2_
+                            : stop2_ + HEADING_SEP + stop1_;
         }
+        return outward_ ? (stop3_ as String) + HEADING_SEP + (stop4_ as String)
+                        : (stop4_ as String) + HEADING_SEP + (stop3_ as String);
     }
 }

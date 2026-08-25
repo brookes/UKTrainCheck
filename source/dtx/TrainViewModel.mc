@@ -211,10 +211,10 @@ class TrainViewModel {
 
     private function _genTitle() as String {
         if (_isLeg1()) {
-            return isOutward() ? stop1_ + " > " + stop2_
-                               : stop2_ + " > " + stop1_;
+            return isOutward() ? stop1_ + HEADING_SEP + stop2_
+                               : stop2_ + HEADING_SEP + stop1_;
         }
-        return isOutward() ? stop3_ + " > " + stop4_
-                           : stop4_ + " > " + stop3_;
+        return isOutward() ? stop3_ + HEADING_SEP + stop4_
+                           : stop4_ + HEADING_SEP + stop3_;
     }
 }

@@ -29,8 +29,9 @@ CRS codes are the 3-letter codes shown on tickets and departure boards. You can 
 
 ## Display
 
-Each row shows the scheduled departure, plus (when enabled) destination, platform,
-delay and a countdown:
+The heading shows the journey on screen as `FROM 🚞 TO`. Below it each row shows the
+scheduled departure, plus (when enabled) destination, platform, delay and a
+countdown:
 
 ```
 08:45 WAT p2 (12m)      on time, 12 min to go
@@ -45,6 +46,8 @@ Delay is shown as `+N` minutes; the countdown always counts to the *actual*
 - **Orange** — delayed
 - **Grey** — already departed (trains from up to 45 minutes ago are shown)
 - **BUS** — replacement bus service
+- **CNX** — cancelled service
+- **Delay** — delayed, no revised time given yet
 
 A header shows the direction currently displayed, e.g. `GLD > WAT`. Arrows
 either side of it appear when there are more departures above or below.
