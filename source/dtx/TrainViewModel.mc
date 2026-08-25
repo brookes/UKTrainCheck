@@ -60,9 +60,10 @@ class TrainViewModel {
         offset_ = 0;
         // A manual selection wins over the clock, so a refresh doesn't undo it.
         if (!manualSelection_) {
+            var leg2Available = stop3_.length() > 0 && stop4_.length() > 0;
             var now = Gregorian.info(Time.now(), Time.FORMAT_SHORT);
             var beforeSwitch = (now.hour < switchHour_);
-            currentLeg_ = beforeSwitch ? 1 : 2;
+            currentLeg_ = (leg2Available && !beforeSwitch) ? 2 : 1;
             outward_    = true;
         }
         _request();
@@ -70,41 +71,48 @@ class TrainViewModel {
 
     // Cycle through legs and directions. Sticks until the widget closes.
     function toggleDirection() as Void {
-        var now = Gregorian.info(Time.now(), Time.FORMAT_SHORT);
-        var beforeSwitch = (now.hour < switchHour_);
+        var leg2Available = stop3_.length() > 0 && stop4_.length() > 0;
 
-        if (beforeSwitch) {
-            // Before switch: Leg1-Out → Leg1-Ret → Leg2-Out → Leg2-Ret
-            if (currentLeg_ == 1) {
-                if (outward_) {
-                    outward_ = false;
-                } else {
-                    currentLeg_ = 2;
-                    outward_    = true;
-                }
-            } else {
-                if (outward_) {
-                    outward_ = false;
-                } else {
-                    currentLeg_ = 1;
-                    outward_    = true;
-                }
-            }
+        // If leg 2 is not configured, just toggle direction on leg 1
+        if (!leg2Available) {
+            outward_ = !outward_;
         } else {
-            // After switch: Leg2-Out → Leg2-Ret → Leg1-Out → Leg1-Ret
-            if (currentLeg_ == 2) {
-                if (outward_) {
-                    outward_ = false;
+            var now = Gregorian.info(Time.now(), Time.FORMAT_SHORT);
+            var beforeSwitch = (now.hour < switchHour_);
+
+            if (beforeSwitch) {
+                // Before switch: Leg1-Out → Leg1-Ret → Leg2-Out → Leg2-Ret
+                if (currentLeg_ == 1) {
+                    if (outward_) {
+                        outward_ = false;
+                    } else {
+                        currentLeg_ = 2;
+                        outward_    = true;
+                    }
                 } else {
-                    currentLeg_ = 1;
-                    outward_    = true;
+                    if (outward_) {
+                        outward_ = false;
+                    } else {
+                        currentLeg_ = 1;
+                        outward_    = true;
+                    }
                 }
             } else {
-                if (outward_) {
-                    outward_ = false;
+                // After switch: Leg2-Out → Leg2-Ret → Leg1-Out → Leg1-Ret
+                if (currentLeg_ == 2) {
+                    if (outward_) {
+                        outward_ = false;
+                    } else {
+                        currentLeg_ = 1;
+                        outward_    = true;
+                    }
                 } else {
-                    currentLeg_ = 2;
-                    outward_    = true;
+                    if (outward_) {
+                        outward_ = false;
+                    } else {
+                        currentLeg_ = 2;
+                        outward_    = true;
+                    }
                 }
             }
         }
