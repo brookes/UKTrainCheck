@@ -8,3 +8,8 @@ internal-mir
 *-settings.json
 .DS_Store
 settings/
+# Settings copied off a watch to inspect what an install actually stored.
+# Spelled out in both cases: the lowercase pattern above only matches the
+# watch's uppercase folder on a case-insensitive filesystem.
+SETTINGS/
+*.SET
