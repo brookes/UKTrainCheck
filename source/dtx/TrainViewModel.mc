@@ -57,35 +57,12 @@ class TrainViewModel {
         refresh();
     }
 
-    // Blank or absent either side means there is no second journey to show.
-    private function _hasLeg2() as Boolean {
-        return stop3_ != null && (stop3_ as String).length() > 0
-            && stop4_ != null && (stop4_ as String).length() > 0;
-    }
-
-    // The cycle runs outbound-first through both legs:
-    //
-    //   0  stop1 > stop2     leg 1 out
-    //   1  stop2 > stop1     leg 1 back
-    //   2  stop3 > stop4     leg 2 out
-    //   3  stop4 > stop3     leg 2 back
-    //
-    // Mornings walk it forwards from 0. Afternoons are the same journeys in
-    // reverse, so they walk it backwards from the end — starting on the far
-    // return, which is the train you actually want after the switch hour.
-    // Without a leg 2 the cycle is just steps 0 and 1, and the same rule leaves
-    // the afternoon starting on step 1, the way it did before leg 2 existed.
-    private function _steps() as Number {
-        return _hasLeg2() ? 4 : 2;
-    }
-
-    private function _forwards() as Boolean {
-        var now = Gregorian.info(Time.now(), Time.FORMAT_SHORT);
-        return now.hour < switchHour_;
-    }
-
-    private function _clockStep() as Number {
-        return _forwards() ? 0 : _steps() - 1;
+    // Journey holds the cycle itself — see there for the step order and why it
+    // reverses after the switch hour. The glance reads the same rules.
+    private function _steps()     as Number  { return Journey.steps(stop3_, stop4_);       }
+    private function _forwards()  as Boolean { return Journey.forwards(switchHour_);       }
+    private function _clockStep() as Number  {
+        return Journey.openingStep(stop3_, stop4_, switchHour_);
     }
 
     function refresh() as Void {
@@ -111,9 +88,9 @@ class TrainViewModel {
         _request();
     }
 
-    function isOutward() as Boolean { return (step_ % 2) == 0; }
+    function isOutward() as Boolean { return Journey.isOutward(step_); }
 
-    private function _isLeg1() as Boolean { return step_ < 2; }
+    private function _isLeg1() as Boolean { return Journey.isLeg1(step_); }
 
     private function _request() as Void {
         var from;

@@ -28,20 +28,20 @@ class TrainGlanceViewModel {
         stop3_ = Properties.getValue("Stop3") as String or Null;
         stop4_ = Properties.getValue("Stop4") as String or Null;
         var switchHour = Properties.getValue("SwitchHour") as Number;
-        var hasLeg2 = stop3_ != null && (stop3_ as String).length() > 0
-                   && stop4_ != null && (stop4_ as String).length() > 0;
-        var now = Gregorian.info(Time.now(), Time.FORMAT_SHORT);
-        currentLeg_ = (hasLeg2 && now.hour >= switchHour) ? 2 : 1;
-        outward_ = true;
+        // The glance has no toggle, so it shows whatever the widget would open
+        // on — including the afternoon's reversal onto the return leg.
+        var step    = Journey.openingStep(stop3_, stop4_, switchHour);
+        currentLeg_ = Journey.isLeg1(step) ? 1 : 2;
+        outward_    = Journey.isOutward(step);
 
         var from;
         var to;
         if (currentLeg_ == 1) {
-            from = stop1_;
-            to   = stop2_;
+            from = outward_ ? stop1_ : stop2_;
+            to   = outward_ ? stop2_ : stop1_;
         } else {
-            from = stop3_ as String;
-            to   = stop4_ as String;
+            from = outward_ ? (stop3_ as String) : (stop4_ as String);
+            to   = outward_ ? (stop4_ as String) : (stop3_ as String);
         }
         service_.request(from, to, 2, null);
     }

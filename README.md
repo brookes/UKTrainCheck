@@ -33,7 +33,7 @@ CRS codes are the 3-letter codes shown on tickets and departure boards. You can 
 
 ## Display
 
-The heading shows the journey on screen as `FROM 🚞 TO`. Below it each row shows the
+The heading shows the journey on screen as `FROM ⇄ TO`. Below it each row shows the
 scheduled departure, plus (when enabled) destination, platform, delay and a
 countdown:
 
