@@ -122,7 +122,7 @@ Not yet written. Needed:
   of the store's audience.
 - **Category** — most likely Widgets, though Connect IQ's categories shift; check
   what comparable transit apps use.
-- **Launcher icon**: currently one SVG at `resources/drawables/launcher_icon.svg`.
+- **Launcher icon**: currently one SVG at `resources/drawables/train-svgrepo-com.svg`.
   The build already warns it is scaled for fr945 (65x65 source, 40x40 target);
   other devices will want their own sizes.
 
