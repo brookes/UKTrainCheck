@@ -1,12 +1,14 @@
 # UKTrainCheck
 
-A Garmin Connect IQ widget that shows live UK train departure times for two stations, automatically switching direction based on time of day.
+A Garmin Connect IQ widget that shows live UK train departure times for one or two
+journeys, automatically switching direction based on time of day.
 (note - the time of day switch is deliberate - this is useful as a glance app, and the time/energy cost of GPS to determine which end of the 
 trip you're at would interfere with the experience.)
 
 ## Features
 
 - Shows upcoming departures between two configured stations
+- Takes a second journey as well, for a commute that changes trains partway
 - Automatically switches outward/return direction at a configurable time, or swap it by hand with a key press
 - Colour-codes each departure: green on time, orange delayed, grey departed
 - Glance view shows the next departure at a glance
@@ -16,8 +18,10 @@ trip you're at would interfere with the experience.)
 
 | Setting | Description |
 |---|---|
-| **Home Station (CRS)** | Your home station's [CRS code](https://www.nationalrail.co.uk/stations_destinations/48541.aspx) (e.g. `GLD`) |
-| **Away Station (CRS)** | Your destination station's CRS code (e.g. `WAT`) |
+| **Leg 1 Station A (CRS)** | Your home station's [CRS code](https://www.nationalrail.co.uk/stations_destinations/48541.aspx) (e.g. `GLD`) |
+| **Leg 1 Station B (CRS)** | Where leg 1 takes you (e.g. `WAT`) |
+| **Leg 2 Station A (CRS)** | Optional. Where the second leg starts — often the same as Leg 1 Station B |
+| **Leg 2 Station B (CRS)** | Optional. Where leg 2 takes you |
 | **Switch direction after** | Time after which the app shows return trains instead of outward (24h, default 12:00) |
 | **Show destination CRS** | Append each train's terminating station code, e.g. `WAT` (default on) |
 | **Show platform** | Append the platform, e.g. `p2` (default on) |
@@ -49,8 +53,8 @@ Delay is shown as `+N` minutes; the countdown always counts to the *actual*
 - **CNX** — cancelled service
 - **Delay** — delayed, no revised time given yet
 
-A header shows the direction currently displayed, e.g. `GLD > WAT`. Arrows
-either side of it appear when there are more departures above or below.
+Arrows either side of the heading appear when there are more departures above or
+below.
 
 How many rows fit is worked out from the screen size at draw time, so it
 adapts across devices — around five on a 240x240 round watch. Scroll with
@@ -64,12 +68,29 @@ route is already in the glance title).
 | Key | Action |
 |---|---|
 | **UP** / **DOWN** | Scroll the departure list |
-| **START** | Swap the direction of travel |
+| **START** | Step to the next journey in the cycle |
 | **MENU** (long-press UP) | Refresh |
 
-Swapping direction by hand overrides the automatic switch time for as long as
-the widget is open — refreshing won't undo it. Close and reopen the widget (or
-change the stations in settings) to go back to following the clock.
+START walks a cycle of every journey and direction you have configured. Before
+the switch hour it opens on the outward leg 1 and works away from home:
+
+```
+Leg 1 A > B   →   Leg 1 B > A   →   Leg 2 A > B   →   Leg 2 B > A   →   (round again)
+```
+
+After the switch hour it runs the same list backwards, opening on the furthest
+return — the train you actually want on the way home:
+
+```
+Leg 2 B > A   →   Leg 2 A > B   →   Leg 1 B > A   →   Leg 1 A > B   →   (round again)
+```
+
+Leave the leg 2 stations blank and the cycle is just the two leg-1 directions,
+still opening on the outward one in the morning and the return in the afternoon.
+
+Stepping by hand overrides the automatic switch time for as long as the widget
+is open — refreshing won't undo it. Close and reopen the widget (or change the
+stations in settings) to go back to following the clock.
 
 ## Supported Devices
 
