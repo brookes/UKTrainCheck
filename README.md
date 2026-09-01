@@ -125,9 +125,9 @@ monkeydo bin/test.prg fr945 -t
 Two things that look like faults but aren't:
 
 - `Invalid device id found in the application manifest` is emitted for every
-  device whose bundle isn't installed in the SDK Manager. The manifest lists
-  more devices than you are likely to have downloaded, so expect a wall of
-  these. The build still succeeds.
+  device whose bundle isn't installed in the SDK Manager — the id is fine, there
+  is just nothing local to compile against. The manifest declares 42 devices, so
+  expect 41 of these if only `fr945` is installed. The build still succeeds.
 - `monkeydo` **with** `-t` runs the test harness, not the UI, so the simulator
   window stays blank. Drop `-t` to see the app. For a glance-capable app the
   simulator may also open the glance rather than the main view.

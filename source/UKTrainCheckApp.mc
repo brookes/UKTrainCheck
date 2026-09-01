@@ -60,7 +60,7 @@ class UKTrainCheckApp extends Application.AppBase {
     (:glance :glanceExclusive)
     function getGlanceView() as [GlanceView] or [GlanceView, GlanceViewDelegate] or Null {
         Log.println("Get glance view");
-        var viewModel = new TrainGlanceViewModel();
+        var viewModel = new TrainGlanceViewModel(new WebRequester());
         return [ new TrainGlanceView(viewModel) ];
     }
 

@@ -18,8 +18,10 @@ class TrainGlanceViewModel {
     private var outward_ as Boolean = true;
     private var service_ as TrainService;
 
-    function initialize() {
-        service_ = new TrainService(method(:onDataChanged), new WebRequester());
+    // The requester is passed in rather than built here so tests can drive the
+    // glance without a network, the same way TrainViewModel takes one.
+    function initialize(requester as WebRequester) {
+        service_ = new TrainService(method(:onDataChanged), requester);
     }
 
     function refresh() as Void {
