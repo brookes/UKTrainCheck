@@ -11,35 +11,73 @@ the code and worth settling before any of the packaging work.
 Worker that holds the RailData API key so the app doesn't have to ship it.
 
 That is the right call for a sideloaded app used by one person. It does not
-survive publication unchanged:
+survive publication unchanged.
 
-- **Every user's traffic lands on that Worker**, against its owner's Cloudflare
-  account and quota. A free Worker's daily request ceiling is easy to reach with
-  even modest uptake, and the failure mode is the app breaking for everyone at
-  once with no way to push a fix faster than store review.
-- **One API key serves all users.** RailData's rate limits apply per key, so
-  users compete with each other, and any abuse is attributable to the key's
-  owner.
-- **Check what the licence actually permits.** Redistributing Darwin/LDBWS data
-  through a third-party app to the public is a different proposition from
-  personal use, and the free tier's terms may not cover it. This needs reading
-  before anything is submitted, not after.
+### Where the ceiling actually is
 
-Options, roughly in increasing order of effort:
+Cloudflare is not the problem. The Workers free tier allows **100,000 requests
+per day**; RailData's free tier allows **100,000 calls per month**, about 3,300
+a day. The upstream API runs out roughly thirty times sooner than the hosting
+does, so swapping Cloudflare for Deno Deploy, Val.town, a Lambda or anything
+else changes nothing that matters. Any proxy still funnels every user through
+one RailData key.
 
-1. **Ship the app without a key and make each user supply their own.** Add a
-   settings field for an API key and point `BASE_URL` back at RailData directly
-   (the commented-out constants in `WebRequester` are already the right ones).
-   Costs nothing, scales indefinitely, and puts each user under their own
-   licence — at the price of a signup step that will lose most casual users.
-2. **Keep the proxy but put limits on it.** Per-device rate limiting and a
-   cost ceiling on the Cloudflare account. Still one key, still one throat to
-   choke, but bounded.
-3. **Both** — proxy by default, own-key as an option for heavy users.
+### What the app currently spends
 
-Option 1 is the only one that doesn't put a personal account behind a public
-app's traffic. Worth deciding before writing the store listing, because it
-changes what the description has to say.
+Calls are not cheap per interaction, which is the thing that makes quotas hard:
+
+| Action | Calls |
+|---|---|
+| Opening the widget | 1 |
+| Each START press (every toggle refetches) | 1 |
+| Cycling all four journeys | 4 |
+| MENU refresh | 1 |
+| Glance, while on screen | 1 per minute (`REFRESH_MS`) |
+
+A single commute check — open, cycle to the right leg — is 3 to 5 calls before
+the glance has polled at all. Any per-user cap below about 20 a day makes the
+app feel broken rather than limited.
+
+### The fix is caching, not capping
+
+The quota counts *upstream* calls, not user requests, and a departure board for
+a given route is identical for everyone asking at the same moment. Two changes
+decouple users from the ceiling almost entirely:
+
+1. **Cache in the Worker, keyed on route, for 30–60s.** Commuter routes cluster
+   hard, so a hundred users watching WRH⇄ECR at 08:40 cost one upstream call
+   rather than a hundred. This is the single highest-value change.
+2. **Cache on-device for the same window**, so toggling back and forth through
+   the cycle doesn't refetch a board fetched seconds ago.
+
+With route-level caching the free RailData tier supports a large user base,
+because cost scales with *distinct routes being watched*, not with users.
+
+### If a paid tier is still wanted
+
+Connect IQ has no in-app purchase, so it would have to be an external payment
+page issuing a licence key that the user pastes into app settings, with the
+Worker checking it. Free-tier quota can be keyed on
+`System.getDeviceSettings().uniqueIdentifier`.
+
+The blocker is not technical. **Charging for access to Darwin data through one
+shared key is far more likely to breach RailData's terms than free personal use
+is.** Settle that question before building any of it — it may decide the whole
+approach.
+
+### Options
+
+1. **Cache, and stay free.** Lowest effort, keeps the app pleasant, very likely
+   enough. Recommended first move.
+2. **Each user supplies their own API key.** A settings field and `BASE_URL`
+   pointed back at RailData — the commented-out constants in `WebRequester` are
+   already the right ones. Costs nothing, scales indefinitely, puts each user
+   under their own licence, and removes the ToS question entirely. The price is
+   a signup step that will lose most casual users.
+3. **Caching plus own-key as an option** for heavy users.
+
+Options 1 and 2 compose well: cache by default, own key for anyone who wants to
+escape the shared pool.
 
 ## 2. Device bundles
 
